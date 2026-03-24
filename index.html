@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Election Algorithms Explorer</title>
+    <meta name="description" content="Interactive demonstration of Bully and Ring distributed system election algorithms.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="app-header">
+        <div class="container">
+            <h1 class="gradient-text">Election Algorithms</h1>
+            <p class="subtitle">Distributed systems often require a central "coordinator" to manage tasks. When that coordinator fails, the remaining nodes must elect a new leader. Explore the two classic algorithms used to solve this problem dynamically.</p>
+        </div>
+    </header>
+
+    <main class="container main-content">
+        <div class="tabs-container">
+            <div class="tabs">
+                <input type="radio" id="tab-ring" name="algo-tabs" checked>
+                <label for="tab-ring" class="tab-label">Ring Algorithm</label>
+                
+                <input type="radio" id="tab-bully" name="algo-tabs">
+                <label for="tab-bully" class="tab-label">Bully Algorithm</label>
+                
+                <div class="tab-slider"></div>
+            </div>
+        </div>
+
+        <div class="tab-content-area">
+            <!-- RING ALGORITHM PANEL -->
+            <section id="panel-ring" class="algo-panel active">
+                <div class="content-grid">
+                    <div class="text-content">
+                        <div class="card">
+                            <h2>Theory</h2>
+                            <p>The <strong>Ring Algorithm</strong> is used in systems organized as a logical ring. We assume unidirectional links, meaning each node only sends messages to its right neighbor.</p>
+                            <p>When a process detects a coordinator failure, it creates an <em>Active List</em> starting with its own ID and sends an ELECTION message to the right. As the message traverses the ring, every active node appends its ID. Once the message completes a full circle, the initiating node examines the list and selects the highest ID as the new coordinator.</p>
+                        </div>
+                        <div class="card mt-4">
+                            <h2>Example Execution</h2>
+                            <ol class="steps-list">
+                                <li><strong>Node 5</strong> crashes (the current coordinator).</li>
+                                <li><strong>Node 2</strong> detects the crash and sends <code>ELECTION[2]</code> to <strong>Node 3</strong>.</li>
+                                <li><strong>Node 3</strong> appends its ID and forwards <code>ELECTION[2,3]</code>.</li>
+                                <li><strong>Node 4</strong> appends its ID and forwards <code>ELECTION[2,3,4]</code>.</li>
+                                <li><strong>Node 1</strong> appends its ID and forwards <code>ELECTION[2,3,4,1]</code>.</li>
+                                <li><strong>Node 2</strong> receives its own message, picks the highest ID (<strong>4</strong>), and broadcasts <code>COORDINATOR(4)</code>.</li>
+                            </ol>
+                        </div>
+                    </div>
+                    <div class="demo-content">
+                        <div class="demo-card">
+                            <div class="demo-header">
+                                <h2>Live Demo</h2>
+                                <div class="controls">
+                                    <button id="btn-start-ring" class="btn btn-primary">Start Demo</button>
+                                    <button id="btn-reset-ring" class="btn btn-outline">Reset</button>
+                                </div>
+                            </div>
+                            <div class="demo-layout">
+                                <div class="demo-canvas" id="canvas-ring">
+                                    <!-- Nodes rendered by JS -->
+                                </div>
+                                <div class="explanation-box" id="expl-ring">
+                                    <h3>Execution Steps</h3>
+                                    <p class="status-msg">Click "Start Demo" to crash the current coordinator and begin the election.</p>
+                                    <ul class="log-list" id="log-ring"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BULLY ALGORITHM PANEL -->
+            <section id="panel-bully" class="algo-panel">
+                <div class="content-grid">
+                    <div class="text-content">
+                        <div class="card">
+                            <h2>Theory</h2>
+                            <p>The <strong>Bully Algorithm</strong> relies on the assumption that every process can communicate with every other process. Nodes "bully" their way to the top.</p>
+                            <p>When a process detects failure, it sends an ELECTION message to all processes with <em>higher</em> IDs. If no one responds, it assumes the throne and broadcasts a COORDINATOR message. If a higher node responds, the lower node gives up, and the higher node takes over the election process until the absolute highest active node wins.</p>
+                        </div>
+                        <div class="card mt-4">
+                            <h2>Example Execution</h2>
+                            <ol class="steps-list">
+                                <li><strong>Node 5</strong> crashes.</li>
+                                <li><strong>Node 2</strong> detects it, sends <code>ELECTION</code> to <strong>3, 4, 5</strong>.</li>
+                                <li>Nodes <strong>3 & 4</strong> respond <code>OK</code> to <strong>2</strong>. Node 2 stops.</li>
+                                <li>Node <strong>3</strong> sends <code>ELECTION</code> to <strong>4, 5</strong>. Node <strong>4</strong> sends <code>ELECTION</code> to <strong>5</strong>.</li>
+                                <li>Node <strong>4</strong> responds <code>OK</code> to <strong>3</strong>. Node 3 stops.</li>
+                                <li>Node <strong>4</strong> receives no response from 5.</li>
+                                <li><strong>Node 4</strong> broadcasts <code>COORDINATOR(4)</code>.</li>
+                            </ol>
+                        </div>
+                    </div>
+                    <div class="demo-content">
+                        <div class="demo-card">
+                            <div class="demo-header">
+                                <h2>Live Demo</h2>
+                                <div class="controls">
+                                    <button id="btn-start-bully" class="btn btn-primary">Start Demo</button>
+                                    <button id="btn-reset-bully" class="btn btn-outline">Reset</button>
+                                </div>
+                            </div>
+                            <div class="demo-layout">
+                                <div class="demo-canvas" id="canvas-bully">
+                                    <!-- Nodes rendered by JS -->
+                                </div>
+                                <div class="explanation-box" id="expl-bully">
+                                    <h3>Execution Steps</h3>
+                                    <p class="status-msg">Click "Start Demo" to crash the current coordinator and begin the election.</p>
+                                    <ul class="log-list" id="log-bully"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>Distibuted Systems Explorer — Interactive election algorithms.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
