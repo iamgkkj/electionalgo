@@ -1,5 +1,5 @@
 # Election Algorithms & Distributed Processing
-*Last Updated: 8 Mar, 2023*
+
 
 A **Distributed Algorithm** is an algorithm that runs on a distributed system—a collection of independent computers that do not share their memory. Each processor has its own memory, and they communicate via communication networks. Communication in networks is implemented by a process on one machine communicating with a process on another machine. Many algorithms used in distributed systems require a **Coordinator** that performs essential functions needed by other processes.
 
